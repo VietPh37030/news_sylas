@@ -13,7 +13,16 @@ const NewBoard = ({category}) => {
       {articles.map((news,index)=>{
             return <NewItem key={index} title ={news.title} description ={news.description} src={news.urlToImage} url={news.url}  />
       })}
+      {articles.length ? (
+        articles.map((news, index) => (
+          <NewItem key={index} title={news.title} description={news.description} src={news.urlToImage} url={news.url} />
+        ))
+      ) : (
+        <p>No articles found for this category.</p>
+      )}
+
     </div>
+
   )
 }
 
