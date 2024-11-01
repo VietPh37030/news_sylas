@@ -68,3 +68,12 @@ align-items: center;
   border-radius: 8px; /* Bo góc */
   z-index: 1000; /* Đảm bảo nó nằm trên cùng */
 }
+.btn-purple {
+  background-color: #6f42c1; /* Màu tím */
+  color: white;
+}
+
+.btn-connected {
+  background-color: #4b0082; /* Màu tím đậm sau khi kết nối */
+  color: white;
+}

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import NewItem from "./NewItem"; // Đảm bảo đường dẫn đúng với vị trí của NewItem
+import CryptoList from "./Bars/CryptoList";
+import FootballList from "./Bars/FootballList";
 
 const NewBoard = () => {
   const [articles, setArticles] = useState([]);
@@ -31,24 +33,29 @@ const NewBoard = () => {
   }, []);
 
   return (
-    <div>
-      <h2 className="text-center">
-        Latest <span className="badge bg-danger">News</span>
-      </h2>
-      <div className="d-flex flex-wrap justify-content-center">
-        {articles.length > 0 ? (
-          articles.map((news) => (
-            <NewItem 
-              key={news._id}
-              title={news.title}
-              content={news.content} // Truyền content vào NewItem
-              src={news.image && news.image.length > 0 ? news.image[0] : null} // Lấy ảnh đầu tiên
-              id={news._id} // Truyền id của bài viết
-            />
-          ))
-        ) : (
-          <p>No news articles available.</p>
-        )}
+    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+      <div style={{ flex: 1 }}>
+        <h2 className="text-center">
+          Latest <span className="badge bg-danger">News</span>
+        </h2>
+        <div className="d-flex flex-wrap justify-content-center">
+          {articles.length > 0 ? (
+            articles.map((news) => (
+              <NewItem 
+                key={news._id}
+                title={news.title}
+                content={news.content} // Truyền content vào NewItem
+                src={news.image && news.image.length > 0 ? news.image[0] : null} // Lấy ảnh đầu tiên
+                id={news._id} // Truyền id của bài viết
+              />
+            ))
+          ) : (
+            <p>No news articles available.</p>
+          )}
+        </div>
+      </div>
+      <div style={{ width: '300px', marginLeft: '20px' }}> {/* Đặt kích thước cho CryptoList */}
+        <CryptoList />
       </div>
     </div>
   );

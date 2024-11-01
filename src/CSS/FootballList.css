@@ -1,0 +1,41 @@
+.football-list-container {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    background-color: #fff;
+  }
+  
+  .football-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .football-list {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .football-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .football-teams {
+    display: flex;
+    align-items: center;
+  }
+  
+  .football-team {
+    font-weight: bold;
+  }
+  
+  .football-vs {
+    margin: 0 10px;
+  }
+  

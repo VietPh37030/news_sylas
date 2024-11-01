@@ -1,12 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link từ react-router-dom
+import { Link } from 'react-router-dom';
+import { PublicKey } from '@solana/web3.js';
 import '../CSS/index.css';
 
 const Navbar = () => {
-  const [activeLink, setActiveLink] = useState('home'); // State để theo dõi phần tử đang hoạt động
+  const [activeLink, setActiveLink] = useState('home');
+  const [walletAddress, setWalletAddress] = useState(null);
 
   const handleLinkClick = (link) => {
-    setActiveLink(link); // Cập nhật phần tử đang hoạt động
+    setActiveLink(link);
+  };
+
+  const connectWallet = async () => {
+    if (window.solana && window.solana.isPhantom) {
+      try {
+        const response = await window.solana.connect();
+        setWalletAddress(response.publicKey.toString());
+
+        // Log thông tin chi tiết của ví
+        console.log("Connected to wallet:", response.publicKey.toString());
+        console.log("Wallet details:", response);
+      } catch (err) {
+        console.error("Connection failed:", err);
+      }
+    } else {
+      alert("Please install Phantom Wallet!");
+    }
   };
 
   return (
@@ -58,7 +77,12 @@ const Navbar = () => {
               <a className="nav-link disabled" aria-disabled="true">Disabled</a>
             </li>
           </ul>
-          <button className="btn btn-purple ms-auto">Connect</button>
+          <button 
+            className={`btn ms-auto ${walletAddress ? 'btn-connected' : 'btn-purple'}`} 
+            onClick={connectWallet}
+          >
+            {walletAddress ? `Connected: ${walletAddress.substring(0, 4)}...${walletAddress.slice(-4)}` : 'Connect'}
+          </button>
         </div>
       </div>
     </nav>
