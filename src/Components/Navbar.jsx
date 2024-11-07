@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';  // Import required Solana libraries
+
 import '../CSS/index.css';
 
 const Navbar = () => {
@@ -11,7 +12,7 @@ const Navbar = () => {
     setActiveLink(link);
   };
 
-  // Function để kết nối Phantom Wallet và lấy publicKey
+  // Function to connect Phantom Wallet and get publicKey
   const connectWallet = async () => {
     if (window.solana && window.solana.isPhantom) {
       try {
@@ -19,37 +20,75 @@ const Navbar = () => {
         const publicKey = response.publicKey.toString();
         setWalletAddress(publicKey);
 
-        // Gọi API để lưu publicKey vào hồ sơ người dùng
+        // Get the Solana token balance after wallet connection
+        const tokenBalance = await getSolanaTokenBalance(publicKey);
+        console.log("Token balance:", tokenBalance);
+
+        // Call the API to save the publicKey in the backend
         await savePublicKey(publicKey);
 
-        // Log thông tin chi tiết của ví
         console.log("Connected to wallet:", publicKey);
         console.log("Wallet details:", response);
       } catch (err) {
         console.error("Connection failed:", err);
       }
     } else {
-      alert("Vui lòng cài đặt Phantom Wallet!");
+      alert("Please install Phantom Wallet!");
     }
   };
 
-  // Function để gửi publicKey đến server
+  const getSolanaTokenBalance = async (publicKey) => {
+    try {
+      const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+      const walletPublicKey = new PublicKey(publicKey);
+  
+      // Get all token accounts by owner (the wallet address)
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPublicKey, { programId: TokenInstructions.TOKEN_PROGRAM_ID });
+  
+      // If no token accounts exist, return null
+      if (tokenAccounts.value.length === 0) {
+        throw new Error("No token accounts found for this wallet.");
+      }
+  
+      // Extract balance information from token accounts
+      const balance = tokenAccounts.value.reduce((total, { account }) => {
+        const tokenAmount = account.data.parsed.info.tokenAmount.uiAmount;
+        return total + tokenAmount;
+      }, 0);
+  
+      console.log("Total token balance:", balance);
+      return balance;
+    } catch (error) {
+      console.error("Error getting Solana token balance:", error);
+      return null;
+    }
+  };
+  
+  
+  // Function to send the publicKey to the server to save it
   const savePublicKey = async (publicKey) => {
     try {
       const response = await fetch('http://localhost:3000/api/v1/users/save-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ publicKey })
       });
+  
+      const responseData = await response.json();
+      console.log("API response:", responseData);  // Check response
+  
       if (response.ok) {
-        alert("Kết nối ví thành công!");
+        alert("Wallet connected successfully!");
       } else {
-        alert("Lưu thông tin ví thất bại");
+        console.error("API error:", responseData);
+        alert(`Failed to save wallet info: ${responseData.message}`);
       }
     } catch (error) {
-      console.error("Lỗi khi lưu ví:", error);
+      console.error("Error sending request:", error);
     }
   };
+  
 
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -88,7 +127,7 @@ const Navbar = () => {
               </Link>
             </li>
             <li className="nav-item">
-            <Link 
+              <Link 
                 className={`nav-link ${activeLink === 'Assets' ? 'text-purple' : ''}`} 
                 to="/assets" 
                 onClick={() => handleLinkClick('Assets')}

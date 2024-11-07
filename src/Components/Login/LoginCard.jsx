@@ -38,11 +38,13 @@ export default function LoginCard({ onLogin }) {  // Receive onLogin as a prop
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Cho phép gửi cookie kèm request
                 body: JSON.stringify({
                     username: user,
                     password: password,
                 }),
             });
+            
 
             const data = await response.json();
 
