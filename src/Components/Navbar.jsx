@@ -11,20 +11,43 @@ const Navbar = () => {
     setActiveLink(link);
   };
 
+  // Function để kết nối Phantom Wallet và lấy publicKey
   const connectWallet = async () => {
     if (window.solana && window.solana.isPhantom) {
       try {
         const response = await window.solana.connect();
-        setWalletAddress(response.publicKey.toString());
+        const publicKey = response.publicKey.toString();
+        setWalletAddress(publicKey);
+
+        // Gọi API để lưu publicKey vào hồ sơ người dùng
+        await savePublicKey(publicKey);
 
         // Log thông tin chi tiết của ví
-        console.log("Connected to wallet:", response.publicKey.toString());
+        console.log("Connected to wallet:", publicKey);
         console.log("Wallet details:", response);
       } catch (err) {
         console.error("Connection failed:", err);
       }
     } else {
-      alert("Please install Phantom Wallet!");
+      alert("Vui lòng cài đặt Phantom Wallet!");
+    }
+  };
+
+  // Function để gửi publicKey đến server
+  const savePublicKey = async (publicKey) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/v1/users/save-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicKey })
+      });
+      if (response.ok) {
+        alert("Kết nối ví thành công!");
+      } else {
+        alert("Lưu thông tin ví thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi lưu ví:", error);
     }
   };
 
@@ -65,7 +88,7 @@ const Navbar = () => {
               </Link>
             </li>
             <li className="nav-item">
-              <Link 
+            <Link 
                 className={`nav-link ${activeLink === 'Assets' ? 'text-purple' : ''}`} 
                 to="/assets" 
                 onClick={() => handleLinkClick('Assets')}
