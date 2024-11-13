@@ -1,0 +1,116 @@
+/* Background and container styling */
+body {
+   
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .assets-container {
+    width: 400px;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: #141432;
+    color: white;
+    margin-left: 40%;
+    margin-top: 10px;
+  }
+  
+  /* Tabs styling */
+  .tabs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #6b6aab;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .tab.active {
+    background-color: #a58ed6;
+  }
+  
+  .settings-icon {
+    font-size: 20px;
+    cursor: pointer;
+    color: #6b6aab;
+  }
+  
+  /* Swap Box styling */
+  .swap-box {
+    background-color: #1f1f3a;
+    padding: 20px;
+    border-radius: 15px;
+  }
+  
+  /* Swap section (From and To) styling */
+  .swap-section {
+    margin-bottom: 20px;
+  }
+  
+  .label {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .token-input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #28284a;
+    padding: 10px 15px;
+    border-radius: 10px;
+  }
+  
+  .token {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+  }
+  
+  .token-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+  }
+  
+  .amount-input {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    text-align: right;
+    width: 60px;
+  }
+  
+  /* Swap icon styling */
+  .swap-icon {
+    text-align: center;
+    font-size: 24px;
+    color: #5d5dbb;
+    margin-bottom: 20px;
+  }
+  
+  /* Connect Wallet button styling */
+  .connect-wallet {
+    background-color: #00c6c7;
+    color: #141432;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  

@@ -1,31 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import '../CSS/index.css'; // Import file CSS
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../CSS/index.css';
 
-const NewDeitail = () => {
-  const { id } = useParams(); // Lấy id từ URL
+const NewDetail = () => {
+  const { id } = useParams();
   const [article, setArticle] = useState(null);
-  const [countdown, setCountdown] = useState(15); // Trạng thái cho đếm ngược
-  const [inactive, setInactive] = useState(false); // Trạng thái để kiểm tra không hoạt động
+  const [countdown, setCountdown] = useState(15);
+  const [pointsAdded, setPointsAdded] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/v1/posts/get-post-by-id/${id}`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
         }
 
         const result = await response.json();
-        setArticle(result.data); // Lưu trữ dữ liệu bài viết
+        setArticle(result.data);
       } catch (error) {
-        console.error("Error fetching article:", error);
+        console.error("Lỗi khi lấy bài viết:", error);
       }
     };
 
@@ -33,81 +33,87 @@ const NewDeitail = () => {
   }, [id]);
 
   useEffect(() => {
-    // Khởi tạo đếm ngược
-    let timer;
-    if (countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
+    const userId = "672c886f5b186018201f9aba";
 
-      return () => clearInterval(timer); // Dọn dẹp interval khi component bị gỡ bỏ
+    // Kiểm tra nếu bài viết đã đọc từ localStorage
+    const readArticles = JSON.parse(localStorage.getItem('readArticles')) || [];
+    if (readArticles.includes(id)) {
+      setPointsAdded(true); // Đã nhận điểm cho bài viết này
+      return;
     }
-  }, [countdown]);
 
-  useEffect(() => {
-    const handleUserActivity = () => {
-      setInactive(false); // Người dùng hoạt động
-      setCountdown(15); // Reset đếm ngược
-    };
+    // Đếm ngược
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
 
-    // Theo dõi hoạt động của người dùng
-    window.addEventListener('mousemove', handleUserActivity);
-    window.addEventListener('keydown', handleUserActivity);
-    window.addEventListener('scroll', handleUserActivity);
-
-    return () => {
-      // Dọn dẹp các sự kiện
-      window.removeEventListener('mousemove', handleUserActivity);
-      window.removeEventListener('keydown', handleUserActivity);
-      window.removeEventListener('scroll', handleUserActivity);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (countdown === 0) {
-      setInactive(true); // Đặt trạng thái không hoạt động khi đếm ngược về 0
+    if (countdown === 0 && !pointsAdded) {
+      addPointsToUser(userId);
     }
-  }, [countdown]);
 
-  // Hàm định dạng ngày tháng
+    return () => clearInterval(timer);
+  }, [countdown, pointsAdded, id]);
+
+  const addPointsToUser = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/v1/users/${userId}/add-points`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ points: 1000 })
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Kết quả cộng điểm:", result);
+        setPointsAdded(true);
+        toast.success("Bạn đã nhận điểm thành công!");
+
+        // Cập nhật danh sách bài viết đã đọc
+        const readArticles = JSON.parse(localStorage.getItem('readArticles')) || [];
+        localStorage.setItem('readArticles', JSON.stringify([...readArticles, id]));
+      } else {
+        console.error("Lỗi khi cộng điểm:", result);
+        toast.error("Nhận điểm thất bại, vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi cộng điểm:", error);
+      toast.error("Nhận điểm thất bại, vui lòng thử lại.");
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = {
+    return date.toLocaleString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // 12-hour or 24-hour format
-    };
-
-    // Chuyển đổi thành định dạng mong muốn
-    return date.toLocaleString('vi-VN', options).replace(',', '').replace(':', 'h');
+      hour12: false
+    }).replace(',', '').replace(':', 'h');
   };
 
   return (
-    <div className="container"> {/* Thêm class cho container */}
+    <div className="container">
       {article ? (
         <div>
           <h1>{article.title}</h1>
-          <h7>{formatDate(article.createdAt)}</h7> {/* Hiển thị ngày giờ đã định dạng */}
+          <h7>{formatDate(article.createdAt)}</h7>
 
           <div className="content-gallery">
             {article.content.split('\n').reduce((acc, paragraph) => {
-              // Kiểm tra độ dài đoạn văn
               const currentParagraph = paragraph.trim();
               if (currentParagraph.length >= 250) {
-                acc.push({ text: currentParagraph, hasImage: false }); // Thêm một đối tượng chứa văn bản và trạng thái hình ảnh
+                acc.push({ text: currentParagraph, hasImage: false });
               } else if (acc.length > 0) {
-                // Nếu có đoạn văn trước đó và không có hình ảnh
-                acc[acc.length - 1].text += ' ' + currentParagraph; // Nối đoạn văn
+                acc[acc.length - 1].text += ' ' + currentParagraph;
               }
               return acc;
             }, []).map((validParagraph, paragraphIndex) => {
-              // Chỉ hiển thị hình ảnh tương ứng với đoạn văn
               const imgSrc = article.image && article.image[paragraphIndex] ? article.image[paragraphIndex] : null;
               if (imgSrc) {
-                validParagraph.hasImage = true; // Đánh dấu rằng đã sử dụng hình ảnh
+                validParagraph.hasImage = true;
               }
 
               return (
@@ -117,7 +123,8 @@ const NewDeitail = () => {
                     <img
                       src={imgSrc}
                       alt={`Image for paragraph ${paragraphIndex + 1}`}
-                      className="image" // Thêm class cho hình ảnh
+                      className="image"
+                      style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }}
                     />
                   )}
                 </React.Fragment>
@@ -127,21 +134,17 @@ const NewDeitail = () => {
 
           {/* Bong bóng đếm ngược */}
           <div className="countdown-bubble">
-            {countdown > 0 ? `${countdown} giây còn lại` : 'Đã Hoàn thành 😍😍😍!'}
+            {pointsAdded ? 'Bạn đã nhận điểm cho bài viết này.' : countdown > 0 ? `${countdown} giây còn lại` : 'Đã Hoàn thành 😍😍😍!'}
           </div>
 
-          {/* Thông báo không hoạt động */}
-          {inactive && (
-            <div className="inactive-dialog">
-              Bạn đang không hoạt động!
-            </div>
-          )}
+          {/* ToastContainer cho thông báo */}
+          <ToastContainer />
         </div>
       ) : (
-        <p>Loading article...</p>
+        <p>Đang tải bài viết...</p>
       )}
     </div>
   );
 };
 
-export default NewDeitail;
+export default NewDetail;

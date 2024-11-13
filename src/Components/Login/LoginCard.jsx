@@ -65,6 +65,8 @@ export default function LoginCard({ onLogin }) {  // Receive onLogin as a prop
         } catch (error) {
             // Handle any network errors
             setErrorMessage('An error occurred. Please try again later.');
+            console.error("Login error:", error);
+            setErrorMessage('Có lỗi xảy ra. Vui lòng thử lại sau.');  
         } finally {
             setIsLoading(false);
         }
@@ -78,7 +80,7 @@ export default function LoginCard({ onLogin }) {  // Receive onLogin as a prop
                         <img
                             src="https://tse3.mm.bing.net/th?id=OIP.hnScG3zE2G41YaH7Iir9zAHaHa&pid=Api&P=0&w=300&h=300"
                             alt="User Avatar"
-                            className="rounded-circle mb-3"
+                            className="rounded-circle avatar"
                         />
                         <h2 className="fw-bold">Welcome Back</h2>
                         <p className="text-muted">Please login to your account</p>
@@ -142,7 +144,7 @@ export default function LoginCard({ onLogin }) {  // Receive onLogin as a prop
                             <span className="login-text">Login</span>
                             {isLoading && <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>}
                         </button>
-                        <button type="button" className="btn btn-outline-secondary w-100">Register</button>
+                        <button type="button" className="btn btn-outline-secondary w-100" onClick={() => navigate('/register')}>Register</button>
                     </form>
                 </div>
             </div>

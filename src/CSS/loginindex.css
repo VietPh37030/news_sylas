@@ -85,3 +85,8 @@
 .loading .spinner-border {
     display: inline-block !important;
 }
+.avatar {
+    width: 100px; /* Điều chỉnh kích thước theo nhu cầu */
+    height: 100px;
+    object-fit: cover; /* Giữ ảnh vừa với khung */
+}

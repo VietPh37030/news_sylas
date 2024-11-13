@@ -24,7 +24,7 @@
 align-items: center;
 }
 .image {
-  width: 800px; /* Kích thước chiều rộng */
+  width: 3200px; /* Kích thước chiều rộng */
   height: 400px; /* Kích thước chiều cao */
   object-fit: cover; /* Đảm bảo hình ảnh không bị biến dạng */
   align-items: center;
