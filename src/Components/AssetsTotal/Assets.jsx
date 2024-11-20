@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../../CSS/Asset.css';
 import { PublicKey, Connection } from '@solana/web3.js';  // Import required
-
+import SolanaChart from '../Bars/SolanaChart ';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Assets = () => {
   const [userPoints, setUserPoints] = useState(null); // Lưu điểm người dùng
   const [walletAddress, setWalletAddress] = useState(null);
@@ -23,6 +25,7 @@ const Assets = () => {
         
         if (data.status === 200) {
           setUserPoints(data.data.point); // Lưu điểm vào state
+          
         } else {
           console.error('Lỗi lấy điểm người dùng:', data.message);
         }
@@ -40,6 +43,7 @@ const Assets = () => {
         const publicKey = response.publicKey.toString();
         setWalletAddress(publicKey);
         console.log("Connected to wallet:", publicKey);
+        toast.success("Bạn đã kết nối ví thành công",publicKey);
       } catch (err) {
         console.error("Connection failed:", err);
       }
@@ -57,37 +61,62 @@ const Assets = () => {
   };
 
   // Hàm gọi API chuyển đổi điểm thành SOL
+ 
   const handleSwap = async () => {
+    // Kiểm tra xem ví đã được kết nối hay chưa
     if (!walletAddress) {
-      alert("Please connect your wallet first.");
+      toast.error("Vui lòng kết nối ví trước khi thực hiện giao dịch.");
+      console.log("Wallet not connected.");
       return;
     }
-
-    if (pointsToSwap <= 0 || pointsToSwap > userPoints) {
-      alert("Invalid points amount.");
+  
+    // Kiểm tra nếu số điểm người dùng nhập <= 0
+    if (pointsToSwap <= 0) {
+      toast.error("Số điểm không hợp lệ. Vui lòng nhập số lớn hơn 0.");
+      console.log("Invalid points amount: must be greater than 0.");
       return;
     }
-
+  
+    // Kiểm tra nếu số điểm muốn đổi lớn hơn số điểm hiện có
+    if (pointsToSwap > userPoints) {
+      toast.error("Số lượng điểm không đủ. Vui lòng nhập số nhỏ hơn hoặc bằng số điểm hiện có.");
+      console.log(
+        `Insufficient points: tried to swap ${pointsToSwap} but only ${userPoints} available.`
+      );
+      return;
+    }
+  
+    // Gửi yêu cầu chuyển đổi lên API
     try {
       const response = await fetch('http://localhost:3000/api/v1/tokens/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          points: pointsToSwap,
+          points: pointsToSwap, // Gửi số điểm cần chuyển đổi
         }),
       });
       const data = await response.json();
-      
+  
       if (data.status === 200) {
-        alert("Swap successful!");
+        alert("Chuyển đổi thành công!");
+        console.log("Swap successful:", data);
+        toast.success('Bạn đã đổi điểm thành công')
+        // Cập nhật lại điểm trong state và gọi lại API để làm mới dữ liệu
+        setUserPoints(userPoints - pointsToSwap); // Trừ điểm đã swap
+        fetchUserData(); // Gọi lại API để cập nhật dữ liệu từ server
       } else {
-        alert("Swap : " + data.message);
+        toast.error("Không thể thực hiện chuyển đổi: " + data.message);
+        console.error("Swap failed:", data.message);
       }
     } catch (error) {
-      console.error("Error during swap:", error);
+      console.error("Lỗi trong quá trình chuyển đổi:", error);
+      alert("Đã xảy ra lỗi khi thực hiện chuyển đổi. Vui lòng thử lại sau.");
     }
   };
+  
+  
+
 
   // Gọi API khi component mount
   useEffect(() => {
@@ -145,6 +174,8 @@ const Assets = () => {
           {walletAddress ? 'Swap Now' : 'Connect Wallet'}
         </button>
       </div>
+      <SolanaChart/>
+      <ToastContainer />
     </div>
   );
 };

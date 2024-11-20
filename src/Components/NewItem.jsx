@@ -18,7 +18,7 @@ const NewItem = ({ title, content, src, id, tokens }) => {
         <p className="card-text">{content ? content.slice(0, 90) : ""}</p>
         <div className="d-flex justify-content-between align-items-center"> {/* Thay đổi ở đây */}
           <button className="btn btn-primary" onClick={handleReadMore}>Read More</button>
-          <span className="ms-3">{tokens} Tokens</span> {/* Hiển thị số lượng token */}
+          <span className="ms-3">{tokens} 500 POINTS</span> {/* Hiển thị số lượng token */}
           <div className="ms-3" style={{ width: '40px', height: '40px' }}>
             <Lottie animationData={tokenAnimation} loop={true} /> {/* Lottie animation */}
           </div>

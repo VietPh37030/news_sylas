@@ -114,4 +114,34 @@ body {
     font-weight: bold;
     cursor: pointer;
   }
+  .history-container {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #1f1f3a;
+    border-radius: 10px;
+  }
+  
+  .history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .history-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #28284a;
+    border-radius: 8px;
+    color: white;
+  }
+  
+  .history-item a {
+    color: #00c6c7;
+    text-decoration: none;
+  }
+  
+  .history-item a:hover {
+    text-decoration: underline;
+  }
+  
   
