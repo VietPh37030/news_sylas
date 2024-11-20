@@ -1,94 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PublicKey, Connection } from '@solana/web3.js';  // Import required Solana libraries
-
+import { PublicKey, Connection } from '@solana/web3.js';
 import '../CSS/index.css';
 
 const Navbar = () => {
   const [activeLink, setActiveLink] = useState('home');
-  const [walletAddress, setWalletAddress] = useState(null);
-
+  const [user, setUser] = useState(null);
+  
   const handleLinkClick = (link) => {
     setActiveLink(link);
   };
 
-  // Function to connect Phantom Wallet and get publicKey
-  const connectWallet = async () => {
-    if (window.solana && window.solana.isPhantom) {
-      try {
-        const response = await window.solana.connect();
-        const publicKey = response.publicKey.toString();
-        setWalletAddress(publicKey);
-
-        // Get the Solana token balance after wallet connection
-        const tokenBalance = await getSolanaTokenBalance(publicKey);
-        console.log("Token balance:", tokenBalance);
-
-        // Call the API to save the publicKey in the backend
-        await savePublicKey(publicKey);
-
-        console.log("Connected to wallet:", publicKey);
-        console.log("Wallet details:", response);
-      } catch (err) {
-        console.error("Connection failed:", err);
-      }
-    } else {
-      alert("Please install Phantom Wallet!");
+  useEffect(() => {
+    // Lấy userId từ localStorage hoặc token nếu có
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      // Gọi API để lấy thông tin người dùng
+      fetchUserData(userId);
     }
-  };
+  }, []);
 
-  const getSolanaTokenBalance = async (publicKey) => {
+  // Gọi API để lấy thông tin người dùng
+  const fetchUserData = async (userId) => {
     try {
-      const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
-      const walletPublicKey = new PublicKey(publicKey);
-  
-      // Get all token accounts by owner (the wallet address)
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPublicKey, { programId: TokenInstructions.TOKEN_PROGRAM_ID });
-  
-      // If no token accounts exist, return null
-      if (tokenAccounts.value.length === 0) {
-        throw new Error("No token accounts found for this wallet.");
-      }
-  
-      // Extract balance information from token accounts
-      const balance = tokenAccounts.value.reduce((total, { account }) => {
-        const tokenAmount = account.data.parsed.info.tokenAmount.uiAmount;
-        return total + tokenAmount;
-      }, 0);
-  
-      console.log("Total token balance:", balance);
-      return balance;
-    } catch (error) {
-      console.error("Error getting Solana token balance:", error);
-      return null;
-    }
-  };
-  
-  
-  // Function to send the publicKey to the server to save it
-  const savePublicKey = async (publicKey) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/v1/users/save-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ publicKey })
-      });
-  
-      const responseData = await response.json();
-      console.log("API response:", responseData);  // Check response
-  
-      if (response.ok) {
-        alert("Wallet connected successfully!");
+      const response = await fetch(`http://localhost:3000/api/v1/users/get-user-by-id/${userId}`);
+      const data = await response.json();
+      console.log("Dữ liệu All",data);
+      
+      if (data.status === 200) {
+        setUser(data.data); // Lưu thông tin người dùng vào state
       } else {
-        console.error("API error:", responseData);
-        alert(`Failed to save wallet info: ${responseData.message}`);
+        console.error('Lỗi lấy thông tin người dùng:', data.message);
       }
     } catch (error) {
-      console.error("Error sending request:", error);
+      console.error('Lỗi gọi API:', error);
     }
   };
-  
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    setUser(null);
+  };
 
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -111,7 +64,7 @@ const Navbar = () => {
               <Link 
                 className={`nav-link ${activeLink === 'home' ? 'text-purple' : ''}`} 
                 aria-current="page" 
-                to="/" 
+                to="/home" 
                 onClick={() => handleLinkClick('home')}
               >
                 Home
@@ -135,16 +88,19 @@ const Navbar = () => {
                 Assets
               </Link>
             </li>
-            <li className="nav-item">
-              <a className="nav-link disabled" aria-disabled="true">Disabled</a>
-            </li>
           </ul>
-          <button 
-            className={`btn ms-auto ${walletAddress ? 'btn-connected' : 'btn-purple'}`} 
-            onClick={connectWallet}
-          >
-            {walletAddress ? `Connected: ${walletAddress.substring(0, 4)}...${walletAddress.slice(-4)}` : 'Connect'}
-          </button>
+          {user ? (
+            <button 
+              className="btn btn-connected ms-auto" 
+              onClick={handleLogout}
+            >
+              Logout ({user.username})
+            </button>
+          ) : (
+            <Link to="/login" className="btn btn-purple ms-auto">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>

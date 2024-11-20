@@ -33,7 +33,13 @@ const NewDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    const userId = "672c886f5b186018201f9aba";
+    // Lấy userId từ localStorage
+    const userId = localStorage.getItem('userId');
+
+    if (!userId) {
+      console.error("Không tìm thấy userId trong localStorage");
+      return;
+    }
 
     // Kiểm tra nếu bài viết đã đọc từ localStorage
     const readArticles = JSON.parse(localStorage.getItem('readArticles')) || [];

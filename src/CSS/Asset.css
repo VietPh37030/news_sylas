@@ -91,7 +91,8 @@ body {
     color: white;
     font-size: 16px;
     text-align: right;
-    width: 60px;
+    width: 100px;
+    margin-left:50px;
   }
   
   /* Swap icon styling */
