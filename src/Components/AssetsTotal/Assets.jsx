@@ -22,10 +22,10 @@ const Assets = () => {
       try {
         const response = await fetch(`http://localhost:3000/api/v1/users/get-user-by-id/${userId}`);
         const data = await response.json();
-        
+
         if (data.status === 200) {
           setUserPoints(data.data.point); // Lưu điểm vào state
-          
+
         } else {
           console.error('Lỗi lấy điểm người dùng:', data.message);
         }
@@ -35,7 +35,7 @@ const Assets = () => {
     }
   };
 
-  // Hàm kết nối Phantom Wallet và lấy publicKey
+  // Hàm kết nối Phantom Wallet và lưu publicKey vào server
   const connectWallet = async () => {
     if (window.solana && window.solana.isPhantom) {
       try {
@@ -43,14 +43,40 @@ const Assets = () => {
         const publicKey = response.publicKey.toString();
         setWalletAddress(publicKey);
         console.log("Connected to wallet:", publicKey);
-        toast.success("Bạn đã kết nối ví thành công",publicKey);
+        toast.success("Bạn đã kết nối ví thành công!");
+
+        // Gửi publicKey lên server
+        try {
+          const saveWalletResponse = await fetch('http://localhost:3000/api/v1/users/save-wallet', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Gửi kèm cookie để xác thực
+            body: JSON.stringify({ publicKey }), // Gửi publicKey lên server
+          });
+
+          const saveWalletData = await saveWalletResponse.json();
+          if (saveWalletResponse.ok && saveWalletData.status === 200) {
+            console.log("Wallet info saved successfully:", saveWalletData);
+            toast.success("Thông tin ví đã được lưu thành công!");
+          } else {
+            console.error("Failed to save wallet info:", saveWalletData.message);
+            toast.error(`Không thể lưu thông tin ví: ${saveWalletData.message}`);
+          }
+        } catch (error) {
+          console.error("Error saving wallet info:", error);
+          toast.error("Lỗi khi lưu thông tin ví.");
+        }
       } catch (err) {
         console.error("Connection failed:", err);
+        toast.error("Kết nối ví thất bại.");
       }
     } else {
       alert("Please install Phantom Wallet!");
     }
   };
+
 
   // Tính toán số SOL từ số điểm
   const handlePointsChange = (e) => {
@@ -61,7 +87,7 @@ const Assets = () => {
   };
 
   // Hàm gọi API chuyển đổi điểm thành SOL
- 
+
   const handleSwap = async () => {
     // Kiểm tra xem ví đã được kết nối hay chưa
     if (!walletAddress) {
@@ -69,14 +95,14 @@ const Assets = () => {
       console.log("Wallet not connected.");
       return;
     }
-  
+
     // Kiểm tra nếu số điểm người dùng nhập <= 0
     if (pointsToSwap <= 0) {
       toast.error("Số điểm không hợp lệ. Vui lòng nhập số lớn hơn 0.");
       console.log("Invalid points amount: must be greater than 0.");
       return;
     }
-  
+
     // Kiểm tra nếu số điểm muốn đổi lớn hơn số điểm hiện có
     if (pointsToSwap > userPoints) {
       toast.error("Số lượng điểm không đủ. Vui lòng nhập số nhỏ hơn hoặc bằng số điểm hiện có.");
@@ -85,7 +111,7 @@ const Assets = () => {
       );
       return;
     }
-  
+
     // Gửi yêu cầu chuyển đổi lên API
     try {
       const response = await fetch('http://localhost:3000/api/v1/tokens/convert', {
@@ -93,29 +119,27 @@ const Assets = () => {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          points: pointsToSwap, // Gửi số điểm cần chuyển đổi
+          points: pointsToSwap,
         }),
       });
       const data = await response.json();
-  
-      if (data.status === 200) {
-        alert("Chuyển đổi thành công!");
+    
+      // Sửa logic kiểm tra
+      if (response.ok && (data.status === 200 || data.message === "Conversion successful")) {
         console.log("Swap successful:", data);
-        toast.success('Bạn đã đổi điểm thành công')
-        // Cập nhật lại điểm trong state và gọi lại API để làm mới dữ liệu
+        toast.success("Bạn đã đổi điểm thành công!");
         setUserPoints(userPoints - pointsToSwap); // Trừ điểm đã swap
-        fetchUserData(); // Gọi lại API để cập nhật dữ liệu từ server
+        fetchUserData(); // Gọi lại API để cập nhật
       } else {
-        toast.error("Không thể thực hiện chuyển đổi: " + data.message);
         console.error("Swap failed:", data.message);
+        toast.error("Không thể thực hiện chuyển đổi: " + (data.message || "Unknown error"));
       }
     } catch (error) {
       console.error("Lỗi trong quá trình chuyển đổi:", error);
-      alert("Đã xảy ra lỗi khi thực hiện chuyển đổi. Vui lòng thử lại sau.");
+      toast.error("Đã xảy ra lỗi khi thực hiện chuyển đổi. Vui lòng thử lại sau.");
     }
+    
   };
-  
-  
 
 
   // Gọi API khi component mount
@@ -141,12 +165,12 @@ const Assets = () => {
             <div className="token">
               POINT
             </div>
-            <input 
-              type="number" 
-              value={pointsToSwap} 
-              onChange={handlePointsChange} 
-              placeholder="0.00" 
-              className="amount-input" 
+            <input
+              type="number"
+              value={pointsToSwap}
+              onChange={handlePointsChange}
+              placeholder="0.00"
+              className="amount-input"
             />
           </div>
         </div>
@@ -167,14 +191,14 @@ const Assets = () => {
         </div>
 
         {/* Connect Wallet / Swap Button */}
-        <button 
-          className={`connect-wallet ${walletAddress ? 'btn-swap' : 'btn-connect'}`} 
+        <button
+          className={`connect-wallet ${walletAddress ? 'btn-swap' : 'btn-connect'}`}
           onClick={walletAddress ? handleSwap : connectWallet}
         >
           {walletAddress ? 'Swap Now' : 'Connect Wallet'}
         </button>
       </div>
-      <SolanaChart/>
+      <SolanaChart />
       <ToastContainer />
     </div>
   );
